@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>💍 웨딩밴드 이상형 월드컵</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Pretendard', sans-serif, helvetica;
+            background-color: #f7f8fa;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 2rem;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            font-size: 1.1rem;
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .match-container {
+            display: flex;
+            gap: 20px;
+            width: 100%;
+            max-width: 900px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        .card {
+            flex: 1;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+        }
+        .card img {
+            width: 100%;
+            height: 320px;
+            object-fit: cover;
+        }
+        .card-title {
+            padding: 20px;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        /* 알림 메시지 (부전승 안내 등) */
+        .notice-msg {
+            margin-top: 10px;
+            font-size: 0.95rem;
+            color: #7f8c8d;
+            height: 20px;
+        }
+        /* 결과 화면 */
+        .result-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            background: #fff;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        .result-container img {
+            width: 100%;
+            max-height: 350px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+        .restart-btn {
+            margin-top: 15px;
+            padding: 12px 24px;
+            font-size: 1rem;
+            background-color: #2c3e50;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .restart-btn:hover {
+            background-color: #34495e;
+        }
+
+        /* 모바일 대응 */
+        @media (max-width: 600px) {
+            .match-container {
+                flex-direction: column;
+            }
+            .card img {
+                height: 220px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>💍 웨딩밴드 이상형 월드컵</h1>
+        <div class="subtitle" id="round-title">라운드 진행 중</div>
+        <div class="notice-msg" id="notice-msg"></div>
+    </header>
+
+    <!-- 매치 화면 -->
+    <div class="match-container" id="match-container">
+        <div class="card" onclick="selectRing(0)">
+            <img id="img1" src="" alt="반지 1">
+            <div class="card-title" id="title1"></div>
+        </div>
+        <div class="card" onclick="selectRing(1)">
+            <img id="img2" src="" alt="반지 2">
+            <div class="card-title" id="title2"></div>
+        </div>
+    </div>
+
+    <!-- 결과 화면 -->
+    <div class="result-container" id="result-container">
+        <h2>🎉 최종 선택된 웨딩밴드!</h2>
+        <img id="result-img" src="" alt="최종 반지">
+        <h3 id="result-title"></h3>
+        <button class="restart-btn" onclick="initWorldcup()">다시 하기</button>
+    </div>
+
+    <script>
+        // 1. 후보 반지 목록 (홀수 개수로 테스트해보셔도 잘 작동합니다!)
+        const initialRings = [
+            { name: "까르띠에 c드링", src: "./src/cartier_c_de_ring.jpg" },
+            { name: "까르띠에 트리니티", src: "./src/cartier_trinity.jpg" },
+            { name: "까르띠에 방돔루이", src: "./src/cartier_vendome_louis.jpg" },
+            { name: "부쉐론 콰트로 레디언트 블랙 에디션 - 골드", src: "./src/bucheron_gold.jpg" },
+            { name: "부쉐론 콰트로 레디언트 블랙 에디션 - 화이트", src: "./src/bucheron_white.jpg" },
+            { name: "부쉐론 콰트로 레디언트 블랙 에디션 - 골드화이트", src: "./src/bucheron_goldwhite.jpg" },
+            { name: "쇼메 리앙 화이트", src: "./src/chaumet_liang_white.jpg" },
+            { name: "반클리프 뚜쥬르 시그니처 - 화이트", src: "./src/vancleef_tujur_signiture.jpg" },
+            { name: "반클리프 뚜쥬르 시그니처 - 골드", src: "./src/vancleef_tujur_signiture_gold.jpg" },
+            { name: "반클리프 뉴욕 웨딩밴드", src: "./src/vancleef_newyork.jpg" },
+            { name: "불가리 비제로원 골드", src: "./src/bvlgari_bzero1_gold.jpg" },
+            { name: "불가리 비제로원 화이트", src: "./src/bvlgari_bzero1_white.jpg" },
+            { name: "부쉐론 콰트로 레디언트 화이트", src: "./src/bucheron_radiant.jpg" },
+            { name: "부쉐론 콰트로 레디언트 골드", src: "./src/bucheron_radiant_gold.jpg" },
+            { name: "부쉐론 콰트로 레디언트 골드", src: "./src/bucheron_radiant_goldwhite.jpg" }
+        ];
+
+        let currentCandidates = []; // 현재 라운드 참여 후보
+let nextRoundWinners = [];  // 다음 라운드 진출자
+let currentIndex = 0;       // 현재 대결 인덱스
+let roundTotal = 0;         // 이번 라운드 시작 시 총 인원수
+
+// ⭐ 완전한 무작위 셔플 (Fisher-Yates 알고리즘)
+function shuffle(array) {
+    let arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
+// 월드컵 초기화
+function initWorldcup() {
+    // 시작할 때 매번 완전히 무작위로 섞음
+    currentCandidates = shuffle(initialRings);
+    nextRoundWinners = [];
+    currentIndex = 0;
+
+    document.getElementById("match-container").style.display = "flex";
+    document.getElementById("result-container").style.display = "none";
+
+    startNewRound();
+}
+
+// 새로운 라운드 시작 시 부전승 처리
+function startNewRound() {
+    roundTotal = currentCandidates.length;
+
+    // 우승자 확정 시
+    if (roundTotal === 1) {
+        showResult(currentCandidates[0]);
+        return;
+    }
+
+    // 후보 수가 홀수인 경우 부전승 처리 (부전승 대상자도 매번 무작위로 결정됨)
+    if (roundTotal % 2 !== 0) {
+        const byeCandidate = currentCandidates.pop();
+        nextRoundWinners.push(byeCandidate);
+        
+        document.getElementById("notice-msg").innerText = 
+            `💡 '${byeCandidate.name}' 후보는 홀수 부전승으로 다음 라운드 직행!`;
+    } else {
+        document.getElementById("notice-msg").innerText = "";
+    }
+
+    currentIndex = 0;
+    updateMatch();
+}
+
+// 매치 화면 업데이트
+function updateMatch() {
+    if (roundTotal === 2) {
+        document.getElementById("round-title").innerText = "🏆 결승전";
+    } else {
+        const currentMatchNum = Math.floor(currentIndex / 2) + 1;
+        const totalMatchesInRound = Math.floor(roundTotal / 2);
+        document.getElementById("round-title").innerText = 
+            `🔥 ${roundTotal}강 (${currentMatchNum}/${totalMatchesInRound})`;
+    }
+
+    const ring1 = currentCandidates[currentIndex];
+    const ring2 = currentCandidates[currentIndex + 1];
+
+    document.getElementById("img1").src = ring1.src;
+    document.getElementById("title1").innerText = ring1.name;
+
+    document.getElementById("img2").src = ring2.src;
+    document.getElementById("title2").innerText = ring2.name;
+}
+
+// 유저 선택
+function selectRing(selectedIndex) {
+    const winner = currentCandidates[currentIndex + selectedIndex];
+    nextRoundWinners.push(winner);
+
+    currentIndex += 2;
+
+    if (currentIndex >= currentCandidates.length) {
+        // 라운드가 올라갈 때도 다음 라운드 대진표를 다시 무작위로 섞음
+        currentCandidates = shuffle(nextRoundWinners);
+        nextRoundWinners = [];
+        startNewRound();
+    } else {
+        updateMatch();
+    }
+}
+
+// 결과 화면
+function showResult(winner) {
+    document.getElementById("match-container").style.display = "none";
+    document.getElementById("round-title").innerText = "선택 완료!";
+    document.getElementById("notice-msg").innerText = "";
+    
+    const resultContainer = document.getElementById("result-container");
+    resultContainer.style.display = "flex";
+
+    document.getElementById("result-img").src = winner.src;
+    document.getElementById("result-title").innerText = winner.name;
+}
+
+window.onload = initWorldcup;
+    </script>
+</body>
+</html>
